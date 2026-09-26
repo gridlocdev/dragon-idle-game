@@ -1,0 +1,18 @@
+# Build output
+bin/
+obj/
+*.user
+*.suo
+
+# IDEs
+.vs/
+.vscode/
+.idea/
+
+# macOS
+.DS_Store
+
+# Local game saves and debug screenshots
+dragonidle_save.json
+*.tmp
+*.png
