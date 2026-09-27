@@ -75,25 +75,52 @@ public static class Ui
 
     public static float Measure(string s, float size) => Raylib.MeasureTextEx(Font, s, size, Spacing(size)).X;
 
+    static readonly Color Ink = new(18, 10, 28, 255);
+
+    /// <summary>A single soft drop shadow, for text sitting on solid UI panels and buttons.</summary>
+    static void DropShadow(string s, Vector2 pos, float size, Color c)
+    {
+        float o = Math.Max(1f, size / 18f);
+        Raylib.DrawTextEx(Font, s, pos + new Vector2(o, o * 1.2f), size, Spacing(size), new Color(Ink.R, Ink.G, Ink.B, (byte)(c.A * 0.55f)));
+    }
+
     public static void Text(string s, float x, float y, float size, Color c, bool shadow = false)
     {
-        if (shadow) Raylib.DrawTextEx(Font, s, new Vector2(x + 2, y + 2), size, Spacing(size), new Color((byte)0, (byte)0, (byte)0, (byte)(c.A * 0.7f)));
+        if (shadow) DropShadow(s, new Vector2(x, y), size, c);
         Raylib.DrawTextEx(Font, s, new Vector2(x, y), size, Spacing(size), c);
     }
 
     public static void TextCentered(string s, Vector2 center, float size, Color c, bool shadow)
     {
+        var pos = center - Raylib.MeasureTextEx(Font, s, size, Spacing(size)) / 2;
+        if (shadow) DropShadow(s, pos, size, c);
+        Raylib.DrawTextEx(Font, s, pos, size, Spacing(size), c);
+    }
+
+    /// <summary>Left-aligned outlined text; see <see cref="TextOutlined"/>.</summary>
+    public static void TextOutlinedAt(string s, float x, float y, float size, Color c)
+    {
         var m = Raylib.MeasureTextEx(Font, s, size, Spacing(size));
-        if (shadow)
+        TextOutlined(s, new Vector2(x, y) + m / 2, size, c);
+    }
+
+    /// <summary>
+    /// Text with an even outline, for text drawn over the busy 3D scene. The outline is a ring of
+    /// 12 opaque copies, so overlaps don't stack into darker blotches; fading text fades the ring
+    /// faster than the fill so it stays clean.
+    /// </summary>
+    public static void TextOutlined(string s, Vector2 center, float size, Color c)
+    {
+        var pos = center - Raylib.MeasureTextEx(Font, s, size, Spacing(size)) / 2;
+        float r = Math.Max(1.5f, size * 0.075f);
+        float fade = c.A / 255f;
+        var ink = new Color(Ink.R, Ink.G, Ink.B, (byte)(255 * fade * fade * fade));
+        for (int k = 0; k < 12; k++)
         {
-            var sh = new Color((byte)0, (byte)0, (byte)0, (byte)(c.A * 0.8f));
-            for (int k = 0; k < 4; k++)
-            {
-                var o = new Vector2(k % 2 == 0 ? -2 : 2, k < 2 ? -2 : 2);
-                Raylib.DrawTextEx(Font, s, center - m / 2 + o, size, Spacing(size), sh);
-            }
+            float a = k * MathF.PI / 6;
+            Raylib.DrawTextEx(Font, s, pos + new Vector2(MathF.Cos(a), MathF.Sin(a)) * r, size, Spacing(size), ink);
         }
-        Raylib.DrawTextEx(Font, s, center - m / 2, size, Spacing(size), c);
+        Raylib.DrawTextEx(Font, s, pos, size, Spacing(size), c);
     }
 
     static void TextRight(string s, float right, float y, float size, Color c) => Text(s, right - Measure(s, size), y, size, c);
@@ -250,7 +277,7 @@ public static class Ui
                 if (done) Raylib.DrawCircleV(pc, 6, GoldC);
             }
         }
-        else TextCentered("Stage cleared - farming", new Vector2(cx, py + 7), 14, Dim, true);
+        else TextOutlined("Stage cleared - farming", new Vector2(cx, py + 7), 14, Txt);
 
         // Auto-advance / fight boss
         var ab = new Rectangle(hdr.X + hdr.Width + 10, hdr.Y + 12, 120, 36);
@@ -276,21 +303,21 @@ public static class Ui
         Bar(hb, shownHpFrac, new Color(255, 240, 200, 255), new Color(50, 20, 30, 255));
         Bar(hb, hpFrac, e.IsDragon ? new Color(230, 70, 200, 255) : e.IsBoss ? new Color(230, 80, 50, 255) : new Color(220, 50, 60, 255), new Color(0, 0, 0, 0));
         TextCentered($"{BigNum.Max(BigNum.Zero, e.Hp).Ceil()} / {e.MaxHp}", new Vector2(cx, hb.Y + 11), 15, Color.White, true);
-        TextCentered(e.Name, new Vector2(cx, hb.Y + hb.Height + 16), 20, e.IsBoss ? new Color(255, 190, 90, 255) : Txt, true);
+        TextOutlined(e.Name, new Vector2(cx, hb.Y + hb.Height + 16), 20, e.IsBoss ? new Color(255, 190, 90, 255) : Txt);
 
         // Onboarding hint
         if (g.Clicks < 25)
         {
             float a = 0.6f + 0.4f * MathF.Sin(t * 5);
-            TextCentered("CLICK THE BATTLEFIELD TO ATTACK!", new Vector2(cx, b.Y + b.Height - 150), 26, new Color((byte)255, (byte)230, (byte)120, (byte)(255 * a)), true);
+            TextOutlined("CLICK THE BATTLEFIELD TO ATTACK!", new Vector2(cx, b.Y + b.Height - 150), 26, new Color((byte)255, (byte)230, (byte)120, (byte)(255 * a)));
         }
 
         DrawAbilities(g, t);
 
         // Active buffs readout
         float bx = b.X + 14, by = b.Y + b.Height - 40;
-        Text($"Crit {g.CritChance() * 100:0}%  x{g.CritMult():0.#}", bx, by, 15, Dim, true);
-        Text($"Best stage {g.BestStage}   Ascensions {g.Ascensions}", bx, by + 18, 13, Dim, true);
+        TextOutlinedAt($"Crit {g.CritChance() * 100:0}%  x{g.CritMult():0.#}", bx, by, 15, Txt);
+        TextOutlinedAt($"Best stage {g.BestStage}   Ascensions {g.Ascensions}", bx, by + 18, 13, Txt);
     }
 
     static void DrawAbilities(Game g, float t)
@@ -331,7 +358,7 @@ public static class Ui
                 Bar(new Rectangle(r.X + 4, r.Y + size - 10, size - 8, 6), g.AbilityActive[i] / a.Duration, Color.White, new Color(0, 0, 0, 120));
             }
             Text($"{i + 1}", r.X + 5, r.Y + 3, 14, Color.White, true);
-            TextCentered(unlocked ? a.Name : $"Stage {a.UnlockStage}", new Vector2(r.X + size / 2, r.Y + size + 12), 12, unlocked ? Txt : Dim, true);
+            TextOutlined(unlocked ? a.Name : $"Stage {a.UnlockStage}", new Vector2(r.X + size / 2, r.Y + size + 12), 12, unlocked ? Txt : Dim);
             if (Hover(r))
             {
                 string tip = $"{a.Name}: {a.Desc}  ({a.Duration:0}s, cooldown {a.Cooldown * g.CooldownMult():0}s)";
@@ -715,7 +742,7 @@ public static class Ui
         bool clicked = Button(r, new Color(60, 50, 90, 255), true);
         Raylib.DrawRectangle((int)r.X + 15, (int)r.Y + 13, 5, 18, Color.White);
         Raylib.DrawRectangle((int)r.X + 24, (int)r.Y + 13, 5, 18, Color.White);
-        Text("Esc", r.X + 11, r.Y + r.Height + 2, 12, Dim, true);
+        TextOutlinedAt("Esc", r.X + 11, r.Y + r.Height + 2, 12, Txt);
         return clicked;
     }
 

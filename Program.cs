@@ -194,7 +194,7 @@ while (!Raylib.WindowShouldClose() && !quit)
             case Ui.PauseAction.NewGame: if (slot != game.Slot) AutoSaveNow(); StartGame(slot, false); paused = false; break;
         }
     }
-    if (sfx.Muted && tour == null) Ui.Text("MUTED (M)", battle.X + battle.Width - 110, battle.Y + battle.Height - 26, 15, Color.White, true);
+    if (sfx.Muted && tour == null) Ui.TextOutlinedAt("MUTED (M)", battle.X + battle.Width - 110, battle.Y + battle.Height - 26, 15, Color.White);
     if (tour is { WantsCapture: true } && tour.Capture(game) is { } nextGame) game = nextGame;
     Raylib.EndDrawing();
     if (tour is { Done: true }) break;

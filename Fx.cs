@@ -331,7 +331,7 @@ public class Fx
             float size = t.Size * pop;
             var pos = new Vector2(sp.X + t.Dx * age * 2, sp.Y - age * 70);
             byte al = (byte)(255 * Math.Min(1, k * 2.5f));
-            Ui.TextCentered(t.Text, pos, size, new Color(t.Col.R, t.Col.G, t.Col.B, al), true);
+            Ui.TextOutlined(t.Text, pos, size, new Color(t.Col.R, t.Col.G, t.Col.B, al));
         }
     }
 
