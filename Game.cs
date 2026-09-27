@@ -63,6 +63,10 @@ public class Game
     public int Slot = 1;
     public bool SavingEnabled = true;
     public DateTime LastSaved;
+    /// <summary>Seconds between autosaves; 0 disables autosave. Set from Settings.</summary>
+    public int AutosaveSeconds = 30;
+    /// <summary>Counts down after an autosave so the UI can show a "Saved" indicator.</summary>
+    public float AutosaveFlash;
 
     public static string SaveDir
     {
@@ -655,8 +659,12 @@ public class Game
         foreach (var g in goldLog) sum += g.g;
         GoldPerSec = sum / Math.Min(10, Math.Max(1, PlayTime));
 
-        saveTimer += dt;
-        if (saveTimer > 30) { saveTimer = 0; Save(); }
+        AutosaveFlash = Math.Max(0, AutosaveFlash - dt);
+        if (AutosaveSeconds > 0)
+        {
+            saveTimer += dt;
+            if (saveTimer >= AutosaveSeconds) { Save(); AutosaveFlash = 2; }
+        }
     }
 
     void HeroAttack(int i)

@@ -24,7 +24,8 @@ Raylib.SetTargetFPS(60);
 
 Render.Init();
 Ui.Init();
-var sfx = new Sfx();
+var settings = Settings.Load();
+var sfx = new Sfx { Muted = settings.Muted };
 sfx.Init();
 Fx fx = null!;
 Game game = null!;
@@ -33,7 +34,7 @@ Game game = null!;
 void StartGame(int slot, bool load)
 {
     fx = new Fx { IconPos = Ui.IconPos, OnCoinArrive = type => { Ui.Pulse(type); sfx.Play(sfx.Coin, 0.35f); } };
-    game = new Game { Fx = fx, Sfx = sfx, Slot = slot };
+    game = new Game { Fx = fx, Sfx = sfx, Slot = slot, AutosaveSeconds = settings.AutosaveSeconds };
     if (load) game.Load();
     else
     {
@@ -58,6 +59,9 @@ else
 bool paused = false;
 bool quit = false;
 
+// Saves that happen without the player asking only run while autosave is on.
+void AutoSaveNow() { if (settings.Autosave) game.Save(); }
+
 var cam = new Camera3D(new Vector3(-2.0f, 6.4f, 15.5f), new Vector3(-2.2f, 1.9f, 0), Vector3.UnitY, 46, CameraProjection.Perspective);
 var basePos = cam.Position;
 var baseTarget = cam.Target;
@@ -74,7 +78,7 @@ while (!Raylib.WindowShouldClose() && !quit)
     if (Raylib.IsKeyPressed(KeyboardKey.Escape) || Raylib.IsKeyPressed(KeyboardKey.P))
     {
         paused = !paused;
-        if (paused) game.Save();
+        if (paused) AutoSaveNow();
     }
     Ui.Modal = paused;
     bool inPlayfield = !paused && Raylib.CheckCollisionPointRec(mouse, battle) && mouse.Y > battle.Y + 150 && mouse.Y < battle.Y + battle.Height - 125;
@@ -86,7 +90,14 @@ while (!Raylib.WindowShouldClose() && !quit)
             if (Raylib.IsKeyPressed(KeyboardKey.One + i)) game.UseAbility(i);
         if (Raylib.IsKeyPressed(KeyboardKey.Tab)) Ui.NextTab();
     }
-    if (Raylib.IsKeyPressed(KeyboardKey.M)) sfx.Muted = !sfx.Muted;
+    if (Raylib.IsKeyPressed(KeyboardKey.M)) { sfx.Muted = !sfx.Muted; settings.Muted = sfx.Muted; settings.Save(); }
+    if (Raylib.IsKeyPressed(KeyboardKey.F5) && game.SavingEnabled)
+    {
+        game.Save();
+        Ui.QuickSaved();
+        fx.Banner("GAME SAVED", $"Slot {game.Slot}", new Color(110, 235, 120, 255));
+        sfx.Play(sfx.LevelUp);
+    }
 
     // ---- simulate (frozen while paused) ----
     if (!paused)
@@ -144,16 +155,17 @@ while (!Raylib.WindowShouldClose() && !quit)
     Ui.DrawPanel(game, t);
     Ui.DrawTopBar(game, dt);
     fx.DrawCoins();
-    if (!paused && Ui.PauseButton()) { paused = true; game.Save(); }
+    Ui.SavedIndicator(game, t);
+    if (!paused && Ui.PauseButton()) { paused = true; AutoSaveNow(); }
     if (paused)
     {
-        var (action, slot) = Ui.DrawPauseMenu(game, sfx, dt);
+        var (action, slot) = Ui.DrawPauseMenu(game, sfx, settings, dt);
         switch (action)
         {
             case Ui.PauseAction.Resume: paused = false; break;
             case Ui.PauseAction.Quit: quit = true; break;
-            case Ui.PauseAction.LoadSlot: game.Save(); StartGame(slot, true); paused = false; break;
-            case Ui.PauseAction.NewGame: if (slot != game.Slot) game.Save(); StartGame(slot, false); paused = false; break;
+            case Ui.PauseAction.LoadSlot: AutoSaveNow(); StartGame(slot, true); paused = false; break;
+            case Ui.PauseAction.NewGame: if (slot != game.Slot) AutoSaveNow(); StartGame(slot, false); paused = false; break;
         }
     }
     if (sfx.Muted) Ui.Text("MUTED (M)", battle.X + battle.Width - 110, battle.Y + battle.Height - 26, 15, Color.White, true);
@@ -164,7 +176,8 @@ while (!Raylib.WindowShouldClose() && !quit)
     if (takeShot) break;
 }
 
-game.Save();
+// "Save & Quit" always saves; closing the window only saves when autosave is on.
+if (quit) game.Save(); else AutoSaveNow();
 Raylib.CloseAudioDevice();
 Raylib.CloseWindow();
 

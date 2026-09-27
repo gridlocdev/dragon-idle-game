@@ -695,7 +695,7 @@ public static class Ui
         y += 6;
         y = Blurb(p, y, $"Play time {(int)span.TotalHours}h {span.Minutes}m   Clicks {g.Clicks}   Ascensions {g.Ascensions}", Dim);
         y = Blurb(p, y, $"Total gold earned {g.TotalGold}", Dim);
-        y = Blurb(p, y, "Keys: 1-5 abilities, Space attack, M mute, Tab switch tab", Dim);
+        y = Blurb(p, y, "Keys: 1-5 abilities, Space attack, M mute, Tab switch tab, F5 save, Esc menu", Dim);
         return y;
     }
 
@@ -744,7 +744,19 @@ public static class Ui
         return clicked && enabled;
     }
 
-    public static (PauseAction action, int slot) DrawPauseMenu(Game g, Sfx sfx, float dt)
+    public static void SavedIndicator(Game g, float t)
+    {
+        if (g.AutosaveFlash <= 0) return;
+        var b = Battle;
+        byte a = (byte)(255 * Math.Min(1, g.AutosaveFlash));
+        var c = new Vector2(b.X + b.Width - 100, b.Y + 20);
+        Raylib.DrawRing(c, 6, 9, t * 360, t * 360 + 270, 16, new Color((byte)110, (byte)235, (byte)120, a));
+        Text("Autosaved", c.X + 16, c.Y - 9, 16, new Color((byte)110, (byte)235, (byte)120, a), true);
+    }
+
+    public static void QuickSaved() => savedToast = 2;
+
+    public static (PauseAction action, int slot) DrawPauseMenu(Game g, Sfx sfx, Settings settings, float dt)
     {
         confirmTimer = Math.Max(0, confirmTimer - dt);
         savedToast = Math.Max(0, savedToast - dt);
@@ -757,8 +769,10 @@ public static class Ui
         Raylib.DrawRectangleRoundedLinesEx(m, 0.06f, 8, 3, new Color(255, 190, 70, 200));
         float cx = m.X + w / 2;
         TextCentered("PAUSED", new Vector2(cx, m.Y + 38), 44, GoldC, true);
-        string saved = g.LastSaved == default ? "Not saved yet this session" : $"Last saved {(int)(DateTime.Now - g.LastSaved).TotalSeconds}s ago  (autosaves every 30s)";
-        TextCentered(savedToast > 0 ? "Game saved!" : saved, new Vector2(cx, m.Y + 72), 15, savedToast > 0 ? Green : Dim, false);
+        string when = g.LastSaved == default ? "Not saved yet this session" : $"Last saved {(int)(DateTime.Now - g.LastSaved).TotalSeconds}s ago";
+        string saved = settings.Autosave ? $"{when}  (autosave every {Settings.Describe(settings.AutosaveSeconds)})" : $"{when}  -  autosave is OFF, save with F5";
+        TextCentered(savedToast > 0 ? "Game saved!" : saved, new Vector2(cx, m.Y + 72), 15,
+            savedToast > 0 ? Green : settings.Autosave ? Dim : new Color(255, 170, 90, 255), false);
 
         var result = (PauseAction.None, 0);
         float bw = (w - 60) / 2, y = m.Y + 96;
@@ -766,8 +780,16 @@ public static class Ui
         if (MenuButton(new Rectangle(m.X + 40 + bw, y, bw, 50), "SAVE GAME", new Color(170, 110, 40, 255), g.SavingEnabled))
         { g.Save(); savedToast = 2; sfx.Play(sfx.LevelUp); }
         y += 62;
-        if (MenuButton(new Rectangle(m.X + 20, y, bw, 44), sfx.Muted ? "SOUND: OFF" : "SOUND: ON", new Color(80, 70, 120, 255))) sfx.Muted = !sfx.Muted;
-        if (MenuButton(new Rectangle(m.X + 40 + bw, y, bw, 44), "SAVE & QUIT", new Color(150, 50, 60, 255))) result = (PauseAction.Quit, 0);
+        float tw = (w - 60) / 3;
+        if (MenuButton(new Rectangle(m.X + 20, y, tw, 44), sfx.Muted ? "SOUND: OFF" : "SOUND: ON", new Color(80, 70, 120, 255)))
+        { sfx.Muted = !sfx.Muted; settings.Muted = sfx.Muted; settings.Save(); }
+        if (MenuButton(new Rectangle(m.X + 30 + tw, y, tw, 44), $"AUTOSAVE: {Settings.Describe(settings.AutosaveSeconds)}",
+                settings.Autosave ? new Color(60, 120, 90, 255) : new Color(110, 70, 50, 255)))
+        {
+            settings.CycleAutosave();
+            g.AutosaveSeconds = settings.AutosaveSeconds;
+        }
+        if (MenuButton(new Rectangle(m.X + 40 + 2 * tw, y, tw, 44), "SAVE & QUIT", new Color(150, 50, 60, 255))) result = (PauseAction.Quit, 0);
         y += 64;
 
         Text("SAVE SLOTS", m.X + 22, y, 20, Txt, true);
@@ -814,7 +836,9 @@ public static class Ui
             else if (MenuButton(b1, "NEW GAME", new Color(60, 150, 90, 255))) result = (PauseAction.NewGame, slot);
             y += 86;
         }
-        TextCentered("Your current game is saved automatically before switching slots.", new Vector2(cx, m.Y + h - 22), 13, Dim, false);
+        TextCentered(settings.Autosave ? "Your current game is saved automatically before switching slots."
+                : "Autosave is off: unsaved progress is lost when switching slots or closing the window.",
+            new Vector2(cx, m.Y + h - 22), 13, settings.Autosave ? Dim : new Color(255, 170, 90, 255), false);
         return result;
     }
 }
