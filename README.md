@@ -250,7 +250,7 @@ Contributions are welcome, especially new heroes, enemies, realms, balance tunin
 ### Handy dev tools
 
 - **Screenshot tour:** `DRAGON_SHOTS=/some/dir dotnet run` plays a scripted tour of staged early-game scenes (gameplay and the pause menu) and saves a PNG of each. It also renders the four currency icons to transparent PNGs in an `icons/` subfolder. `just shots` runs the tour, converts the screenshots into the 1280px-wide JPEGs in `docs/screenshots/` and copies the icons into `docs/icons/`. That's how the images in this README were made. The tour never writes to your save slots.
-- **App icon:** `dotnet run -- --render-icon assets/icon/AppIcon.png` renders the 1024px icon from the real dragon model, plus a multi-size `AppIcon.ico` next to it. Every package uses these: the macOS `.icns`, the Windows `.exe` (embedded when built on Windows, which the release workflow does) and the window icon on Windows and Linux.
+- **App icon:** `dotnet run -- --render-icon assets/icon/AppIcon.png` renders the 1024px icon from the real dragon model, plus a multi-size `AppIcon.ico` next to it. Every package uses these: the macOS `.icns`, the icon embedded in the Windows `.exe` and the window icon on Windows and Linux.
 - **Demo mode:** `dotnet run -- --demo` starts at stage 40 with most heroes and dragons unlocked. Nothing is saved, which makes it handy for checking visuals.
 
 ### Guidelines

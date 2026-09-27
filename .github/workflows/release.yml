@@ -23,13 +23,9 @@ jobs:
             package: scripts/package-linux.sh
             artifact: linux-x64
           - name: Windows x64
-            # Built on Windows so the icon gets embedded in the .exe (the .NET SDK can only do that on Windows).
-            os: windows-latest
+            os: ubuntu-latest
             package: scripts/package-windows.sh
             artifact: win-x64
-    defaults:
-      run:
-        shell: bash
     env:
       APP_VERSION: ${{ github.ref_name }}
     steps:

@@ -9,7 +9,7 @@
     <RootNamespace>DragonIdle</RootNamespace>
     <Version>0.1.0</Version>
     <Product>Dragon Idle</Product>
-    <!-- Embedded in the Windows .exe; only applied when the Windows build runs on Windows. -->
+    <!-- Embedded in the Windows .exe (the .NET 8+ SDK can do this from macOS and Linux too). -->
     <ApplicationIcon>assets/icon/AppIcon.ico</ApplicationIcon>
   </PropertyGroup>
 

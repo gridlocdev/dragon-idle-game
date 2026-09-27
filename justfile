@@ -46,7 +46,7 @@ build-macos-universal:
 build-linux:
     scripts/package-linux.sh
 
-# Package a self-contained Windows x64 zip into dist/ (works from macOS or Linux; the .exe icon is only embedded on Windows)
+# Package a self-contained Windows x64 zip into dist/ (works from macOS or Linux)
 build-windows:
     scripts/package-windows.sh
 

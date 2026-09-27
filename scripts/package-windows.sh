@@ -8,8 +8,7 @@
 # Output: DIR/dragon-idle-<version>-win-x64.zip, which unpacks to dragon-idle/.
 # Only x64 is supported: raylib-cs ships no win-arm64 native library.
 # Built as a WinExe so no console window opens alongside the game.
-# Can be run from macOS, Linux or Windows (Git Bash). The .exe only gets the app icon embedded
-# when built on Windows; elsewhere the SDK skips that step.
+# Can be run from macOS or Linux.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -49,15 +48,8 @@ cp "$ICON_PNG" "$STAGE/icon.png"
 
 echo "==> Creating $ARCHIVE"
 rm -f "$ARCHIVE"
-if command -v zip >/dev/null; then
-  # -X leaves out macOS/Unix extra attributes.
-  (cd "$BUILD_DIR" && zip -qrX - "$PKG_NAME") > "$ARCHIVE"
-elif command -v 7z >/dev/null; then
-  archive_abs="$(cd "$OUT" && pwd)/$(basename "$ARCHIVE")"
-  (cd "$BUILD_DIR" && 7z a -tzip -bso0 -bsp0 "$archive_abs" "$PKG_NAME")
-else
-  powershell -NoProfile -Command "Compress-Archive -Path '$BUILD_DIR/$PKG_NAME' -DestinationPath '$ARCHIVE' -Force"
-fi
+# -X leaves out macOS/Unix extra attributes.
+(cd "$BUILD_DIR" && zip -qrX - "$PKG_NAME") > "$ARCHIVE"
 
 echo
 echo "Built: $ARCHIVE  (v$VERSION, $(du -sh "$ARCHIVE" | cut -f1))"
