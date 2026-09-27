@@ -358,7 +358,7 @@ public class Game
             int n = (int)((Stage / 10 - 1) % Defs.DragonNames.Length);
             e.Name = $"{Defs.DragonNames[n]} {Defs.DragonEpithets[bi]}";
             e.Tint = Defs.DragonBossColors[bi];
-            e.Scale = 2.0f;
+            e.Scale = 1.5f;
         }
         else if (e.IsBoss)
         {
@@ -390,7 +390,7 @@ public class Game
     {
         if (!Enemy.Alive) return;
         Enemy.Hp -= dmg;
-        Enemy.HitFlash = 0.12f;
+        Enemy.HitFlash = Math.Max(Enemy.HitFlash, source == -1 ? 0.1f : 0.03f);
         Enemy.Wobble = crit ? 1f : Math.Max(Enemy.Wobble, 0.4f);
         var p = EnemyHitPoint() + new Vector3((float)Rng.NextDouble() - 0.5f, (float)Rng.NextDouble() * 0.8f, 0.8f);
         if (source == -1)

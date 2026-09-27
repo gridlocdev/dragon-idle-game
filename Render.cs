@@ -721,7 +721,7 @@ void main() {
         if (!e.Alive) { Rlgl.Translatef(0, -(1 - dieK) * 0.8f, 0); RY((1 - dieK) * 360); }
         RY(e.IsDragon ? 215 : 235);
         Rlgl.Scalef(sc / squash, sc * squash, sc / squash);
-        SetFlash(e.HitFlash > 0 ? 0.75f : (!e.Alive ? 0.5f : 0));
+        SetFlash(!e.Alive ? 0.5f : Math.Min(0.55f, e.HitFlash * 5.5f));
         var tint = e.Tint;
         float bob = (float)Math.Sin(t * 3) * 0.04f;
         float headTop = 1.8f;

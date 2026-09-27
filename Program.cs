@@ -3,10 +3,10 @@ using Raylib_cs;
 using DragonIdle;
 
 bool demo = args.Contains("--demo");
-string? shot = Environment.GetEnvironmentVariable("DRAGON_SHOT");
+string? shotDir = Environment.GetEnvironmentVariable("DRAGON_SHOTS");
 
 Raylib.SetConfigFlags(ConfigFlags.Msaa4xHint | ConfigFlags.ResizableWindow | ConfigFlags.VSyncHint | ConfigFlags.HighDpiWindow);
-Raylib.InitWindow(1440, 860, "Dragon Idle - Legends of the Wyrm Tamer");
+Raylib.InitWindow(1440, 860, "Dragon Idle");
 Raylib.SetWindowMinSize(1000, 640);
 {
     // Fit the window to the current display (small laptop screens included).
@@ -45,7 +45,19 @@ void StartGame(int slot, bool load)
     }
 }
 
-if (demo)
+ShotTour? tour = null;
+if (shotDir != null)
+{
+    sfx.Muted = true;
+    ShotTour.RenderIcons(shotDir);
+    tour = new ShotTour(shotDir, () =>
+    {
+        fx = new Fx { IconPos = Ui.IconPos, OnCoinArrive = type => Ui.Pulse(type) };
+        return new Game { Fx = fx, Sfx = sfx, SavingEnabled = false };
+    });
+    game = tour.Tick(null!)!;
+}
+else if (demo)
 {
     fx = new Fx { IconPos = Ui.IconPos, OnCoinArrive = type => { Ui.Pulse(type); sfx.Play(sfx.Coin, 0.35f); } };
     game = new Game { Fx = fx, Sfx = sfx, SavingEnabled = false };
@@ -65,7 +77,6 @@ void AutoSaveNow() { if (settings.Autosave) game.Save(); }
 var cam = new Camera3D(new Vector3(-2.0f, 6.4f, 15.5f), new Vector3(-2.2f, 1.9f, 0), Vector3.UnitY, 46, CameraProjection.Perspective);
 var basePos = cam.Position;
 var baseTarget = cam.Target;
-int frame = 0;
 
 while (!Raylib.WindowShouldClose() && !quit)
 {
@@ -73,6 +84,12 @@ while (!Raylib.WindowShouldClose() && !quit)
     float t = (float)Raylib.GetTime();
     var battle = Ui.Battle;
     var mouse = Raylib.GetMousePosition();
+
+    if (tour != null)
+    {
+        if (tour.Tick(game) is { } next) game = next;
+        paused = tour.Paused;
+    }
 
     // ---- input ----
     if (Raylib.IsKeyPressed(KeyboardKey.Escape) || Raylib.IsKeyPressed(KeyboardKey.P))
@@ -168,16 +185,14 @@ while (!Raylib.WindowShouldClose() && !quit)
             case Ui.PauseAction.NewGame: if (slot != game.Slot) AutoSaveNow(); StartGame(slot, false); paused = false; break;
         }
     }
-    if (sfx.Muted) Ui.Text("MUTED (M)", battle.X + battle.Width - 110, battle.Y + battle.Height - 26, 15, Color.White, true);
-    frame++;
-    bool takeShot = shot != null && frame == 240;
-    if (takeShot) { Rlgl.DrawRenderBatchActive(); Raylib.TakeScreenshot(shot!); }
+    if (sfx.Muted && tour == null) Ui.Text("MUTED (M)", battle.X + battle.Width - 110, battle.Y + battle.Height - 26, 15, Color.White, true);
+    if (tour is { WantsCapture: true } && tour.Capture(game) is { } nextGame) game = nextGame;
     Raylib.EndDrawing();
-    if (takeShot) break;
+    if (tour is { Done: true }) break;
 }
 
 // "Save & Quit" always saves; closing the window only saves when autosave is on.
-if (quit) game.Save(); else AutoSaveNow();
+if (quit) game.Save(); else if (tour == null) AutoSaveNow();
 Raylib.CloseAudioDevice();
 Raylib.CloseWindow();
 

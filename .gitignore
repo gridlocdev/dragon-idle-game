@@ -16,3 +16,4 @@ obj/
 dragonidle_save.json
 *.tmp
 *.png
+!docs/icons/*.png

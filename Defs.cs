@@ -100,7 +100,7 @@ public static class Defs
     public static readonly UpgradeDef[] Dragons =
     {
         new("Ember Wyrmling", "+25% all damage, x2 every 10 levels", 1, 1.38, 0, C(230, 70, 40)),
-        new("Frost Drake", "+50% click damage, clicks deal +1% DPS", 4, 1.4, 0, C(110, 200, 255)),
+        new("Frost Drake", "+50% click damage, +1% DPS per click", 4, 1.4, 0, C(110, 200, 255)),
         new("Gilded Wyvern", "+30% gold", 12, 1.42, 0, C(255, 200, 50)),
         new("Storm Serpent", "+50% critical damage", 30, 1.45, 0, C(150, 110, 255)),
         new("Void Leviathan", "+15% souls on ascension", 80, 1.5, 0, C(80, 30, 110)),

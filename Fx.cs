@@ -342,7 +342,7 @@ public class Fx
 
     public void DrawBanners(Rectangle area, float time)
     {
-        float y = area.Y + 110;
+        float y = area.Y + 215;
         foreach (var b in Banners)
         {
             float age = 3.2f - b.Life;

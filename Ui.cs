@@ -669,7 +669,7 @@ public static class Ui
         Raylib.DrawRectangleRounded(r, 0.12f, 8, new Color(50, 30, 75, 255));
         Raylib.DrawRectangleRoundedLinesEx(r, 0.12f, 8, 2, new Color(200, 120, 255, 180));
         TextCentered("ASCENSION", new Vector2(r.X + r.Width / 2, r.Y + 24), 30, new Color(220, 160, 255, 255), true);
-        TextCentered("Reset stages, gold and heroes. Keep gems, artifacts, dragons and souls.", new Vector2(r.X + r.Width / 2, r.Y + 52), 14, Dim, false);
+        TextCentered("Resets stages, gold and heroes. Everything else is kept.", new Vector2(r.X + r.Width / 2, r.Y + 52), 14, Dim, false);
         TextCentered($"Highest stage this run: {g.MaxStage}", new Vector2(r.X + r.Width / 2, r.Y + 76), 17, Txt, false);
         var bonus = g.LifetimeSouls * 10;
         TextCentered($"Lifetime souls: {g.LifetimeSouls}   (+{bonus}% damage)", new Vector2(r.X + r.Width / 2, r.Y + 98), 16, new Color(200, 160, 255, 255), false);
@@ -700,6 +700,7 @@ public static class Ui
     }
 
     public static void NextTab() => tab = (tab + 1) % 4;
+    public static void SetTab(int t) { tab = t; scroll[t] = 0; }
 
     // ---------- pause menu ----------
     public enum PauseAction { None, Resume, Quit, LoadSlot, NewGame }
