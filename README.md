@@ -232,17 +232,17 @@ Contributions are welcome, especially new heroes, enemies, realms, balance tunin
 
 | Path | Contents |
 |---|---|
-| `Program.cs` | Window setup, main loop, camera, the 3D viewport, pause and slot handling |
-| `Game.cs` | Game state and rules: damage, kills, stages, bosses, shops, ascension, save/load, offline progress |
-| `Defs.cs` | Heroes, realms, enemies, artifacts, dragons, soul upgrades, abilities and milestone rules (a good first place to contribute) |
-| `BigNum.cs` | The uncapped number type and its number formatting |
-| `Render.cs` | Toon-lighting shader, primitive helpers, and every hero, enemy, dragon and realm model |
-| `Fx.cs` | Particles, projectiles, damage numbers, banners, flying coins, screen shake and flashes |
-| `Ui.cs` | Top bar, stage header, ability bar, shop tabs and the pause menu |
-| `Sfx.cs` | Synthesised sound effects |
-| `Settings.cs` | Autosave and mute settings, shared by all save slots |
-| `ShotTour.cs` | The scripted screenshot tour and the currency icon renderer |
-| `IconRenderer.cs` | Renders the app icon from the in-game dragon model |
+| `src/Program.cs` | Window setup, main loop, camera, the 3D viewport, pause and slot handling |
+| `src/Game.cs` | Game state and rules: damage, kills, stages, bosses, shops, ascension, save/load, offline progress |
+| `src/Defs.cs` | Heroes, realms, enemies, artifacts, dragons, soul upgrades, abilities and milestone rules (a good first place to contribute) |
+| `src/BigNum.cs` | The uncapped number type and its number formatting |
+| `src/Render.cs` | Toon-lighting shader, primitive helpers, and every hero, enemy, dragon and realm model |
+| `src/Fx.cs` | Particles, projectiles, damage numbers, banners, flying coins, screen shake and flashes |
+| `src/Ui.cs` | Top bar, stage header, ability bar, shop tabs and the pause menu |
+| `src/Sfx.cs` | Synthesised sound effects |
+| `src/Settings.cs` | Autosave and mute settings, shared by all save slots |
+| `src/ShotTour.cs` | The scripted screenshot tour and the currency icon renderer |
+| `src/IconRenderer.cs` | Renders the app icon from the in-game dragon model |
 | `assets/icon/` | `AppIcon.png` (macOS `.icns`, Linux and the window icon) and `AppIcon.ico` (Windows `.exe`) |
 | `scripts/package-mac.sh`, `scripts/package-linux.sh`, `scripts/package-windows.sh` | Packaging for each platform |
 | `.github/workflows/release.yml` | Builds every platform and publishes a GitHub release when a `v*` tag is pushed |
