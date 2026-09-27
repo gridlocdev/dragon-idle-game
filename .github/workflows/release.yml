@@ -1,0 +1,87 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - name: macOS universal
+            os: macos-latest
+            package: scripts/package-mac.sh --arch universal
+            artifact: macos-universal
+          - name: Linux x64
+            os: ubuntu-latest
+            package: scripts/package-linux.sh
+            artifact: linux-x64
+          - name: Windows x64
+            # Built on Windows so the icon gets embedded in the .exe (the .NET SDK can only do that on Windows).
+            os: windows-latest
+            package: scripts/package-windows.sh
+            artifact: win-x64
+    defaults:
+      run:
+        shell: bash
+    env:
+      APP_VERSION: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Strip the leading "v" from the tag
+        run: echo "APP_VERSION=${APP_VERSION#v}" >> "$GITHUB_ENV"
+
+      - name: Package
+        run: ${{ matrix.package }}
+
+      - name: Zip the .app
+        if: runner.os == 'macOS'
+        run: ditto -c -k --keepParent "dist/Dragon Idle.app" "dist/dragon-idle-$APP_VERSION-macos-universal.zip"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.artifact }}
+          path: |
+            dist/*.zip
+            dist/*.tar.gz
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > notes.md <<'NOTES'
+          ## Downloads
+
+          - **macOS** (Apple Silicon and Intel, macOS 12+): `dragon-idle-*-macos-universal.zip`. The app is not notarized, so on first launch right-click it and choose **Open**, or run `xattr -dr com.apple.quarantine "Dragon Idle.app"`.
+          - **Linux x64**: `dragon-idle-*-linux-x64.tar.gz`. Extract it and run `./dragon-idle/DragonIdle`.
+          - **Windows x64**: `dragon-idle-*-win-x64.zip`. Extract it and run `dragon-idle\DragonIdle.exe`. It is not code-signed, so SmartScreen may warn you: choose **More info** then **Run anyway**.
+
+          All builds are self-contained, so .NET does not need to be installed.
+          NOTES
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "Dragon Idle $GITHUB_REF_NAME" \
+            --notes-file notes.md \
+            --generate-notes \
+            $([[ "$GITHUB_REF_NAME" == *-* ]] && echo --prerelease)

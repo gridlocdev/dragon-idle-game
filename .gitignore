@@ -1,6 +1,8 @@
 # Build output
 bin/
 obj/
+build/
+dist/
 *.user
 *.suo
 
@@ -17,3 +19,4 @@ dragonidle_save.json
 *.tmp
 *.png
 !docs/icons/*.png
+!assets/icon/*.png

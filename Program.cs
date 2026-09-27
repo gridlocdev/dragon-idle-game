@@ -20,10 +20,19 @@ Raylib.SetWindowMinSize(1000, 640);
     }
 }
 Raylib.SetExitKey(KeyboardKey.Null);
+SetWindowIcon();
 Raylib.SetTargetFPS(60);
 
 Render.Init();
 Ui.Init();
+
+int iconArg = Array.IndexOf(args, "--render-icon");
+if (iconArg >= 0)
+{
+    IconRenderer.Render(iconArg + 1 < args.Length ? args[iconArg + 1] : "assets/icon/AppIcon.png");
+    Raylib.CloseWindow();
+    return;
+}
 var settings = Settings.Load();
 var sfx = new Sfx { Muted = settings.Muted };
 sfx.Init();
@@ -206,4 +215,17 @@ static void Demo(Game g)
     g.Gold = BigNum.FromLog10(20);
     g.Gems = 500; g.Scales = 1234; g.Souls = 77; g.LifetimeSouls = 300;
     g.SpawnEnemy();
+}
+
+// Window/taskbar icon on Windows and Linux. macOS takes the Dock icon from the .app bundle instead.
+static void SetWindowIcon()
+{
+    if (OperatingSystem.IsMacOS()) return;
+    string path = Path.Combine(AppContext.BaseDirectory, "assets", "icon", "AppIcon.png");
+    if (!File.Exists(path)) return;
+    var img = Raylib.LoadImage(path);
+    Raylib.ImageResize(ref img, 256, 256);
+    Raylib.ImageFormat(ref img, PixelFormat.UncompressedR8G8B8A8);
+    Raylib.SetWindowIcon(img);
+    Raylib.UnloadImage(img);
 }

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -7,10 +7,19 @@
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RootNamespace>DragonIdle</RootNamespace>
+    <Version>0.1.0</Version>
+    <Product>Dragon Idle</Product>
+    <!-- Embedded in the Windows .exe; only applied when the Windows build runs on Windows. -->
+    <ApplicationIcon>assets/icon/AppIcon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Raylib-cs" Version="8.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Used at runtime as the window/taskbar icon on Windows and Linux. -->
+    <None Include="assets/icon/AppIcon.png" CopyToOutputDirectory="PreserveNewest" Link="assets/icon/AppIcon.png" />
   </ItemGroup>
 
 </Project>

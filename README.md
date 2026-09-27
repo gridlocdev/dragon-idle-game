@@ -22,16 +22,26 @@ You click to attack while your heroes fight on their own. Every level-up gives y
 
 ## Getting the game
 
+### Download
+
+Pushing a `v*` tag builds every platform and publishes them on the repository's **Releases** page. All builds are self-contained, so you don't need .NET installed.
+
+| Download | How to run it |
+|---|---|
+| `dragon-idle-<version>-macos-universal.zip` | Unzip and open **Dragon Idle.app**. It isn't notarized, so the first time, right-click it and choose **Open**, or run `xattr -dr com.apple.quarantine "Dragon Idle.app"`. |
+| `dragon-idle-<version>-linux-x64.tar.gz` | Extract it and run `./dragon-idle/DragonIdle`. |
+| `dragon-idle-<version>-win-x64.zip` | Extract it and run `dragon-idle\DragonIdle.exe`. It isn't code-signed, so SmartScreen may warn you: choose **More info**, then **Run anyway**. |
+
 ### Supported platforms
 
 | Platform | Status |
 |---|---|
-| macOS, Apple Silicon | Supported and tested. |
-| macOS, Intel | Should work from source, not yet tested. |
-| Linux x64 | Should work from source, untested. |
-| Windows x64 | Should work from source, untested. |
+| macOS, Apple Silicon | Supported and tested. Can be packaged as a `.app`. |
+| macOS, Intel | Builds as part of the universal `.app`, not yet tested on Intel hardware. |
+| Linux x64 | Packaged as a self-contained tarball, but untested. |
+| Windows x64 | Packaged as a self-contained zip, but untested. |
 
-There are no packaged builds yet, so every platform runs from source. On macOS the game uses Arial Rounded Bold from the system fonts. On other platforms it looks for Trebuchet (Windows) or DejaVu Sans (Linux) and falls back to raylib's built-in pixel font.
+The packaged app targets macOS 12 or later. On macOS the game uses Arial Rounded Bold from the system fonts. On other platforms it looks for Trebuchet (Windows) or DejaVu Sans (Linux) and falls back to raylib's built-in pixel font.
 
 ### Run from source
 
@@ -44,6 +54,15 @@ dotnet run          # or: just run
 ```
 
 The window sizes itself to fit your display, and you can resize it.
+
+### Install as a macOS app
+
+```sh
+just install-macos    # builds "Dragon Idle.app" and moves it into ~/Applications
+just uninstall-macos  # moves it to the Trash again (your saves are kept)
+```
+
+`just build-macos` builds the app into `dist/` without installing it, and `just build-macos-universal` builds one that runs on both Apple Silicon and Intel Macs. The bundle is self-contained, so the Mac running it doesn't need .NET installed.
 
 ## How to play
 
@@ -193,7 +212,7 @@ Contributions are welcome, especially new heroes, enemies, realms, balance tunin
 
 - .NET 10 SDK
 - [just](https://github.com/casey/just) (optional)
-- macOS for `just shots` (it uses `sips` to convert screenshots)
+- macOS for building the `.app` (uses `sips`, `iconutil`, `lipo` and `codesign`) and for `just shots` (uses `sips`)
 
 | Recipe | What it does |
 |---|---|
@@ -201,6 +220,12 @@ Contributions are welcome, especially new heroes, enemies, realms, balance tunin
 | `just build` | Debug build |
 | `just demo` | Run with a late-game save that never touches your real save slots |
 | `just shots` | Play the screenshot tour and refresh `docs/screenshots/` and `docs/icons/` |
+| `just icon` | Re-render the app icon (PNG and Windows `.ico`) from the in-game dragon |
+| `just build-macos` / `just build-macos-universal` | Package `Dragon Idle.app` into `dist/` |
+| `just build-linux` | Package a Linux x64 tarball into `dist/` |
+| `just build-windows` | Package a Windows x64 zip into `dist/` |
+| `just run-macos` | Package and launch the app |
+| `just install-macos` / `just uninstall-macos` | Install to / remove from `~/Applications` |
 | `just clean` | Delete build output |
 
 ### Project layout
@@ -217,10 +242,15 @@ Contributions are welcome, especially new heroes, enemies, realms, balance tunin
 | `Sfx.cs` | Synthesised sound effects |
 | `Settings.cs` | Autosave and mute settings, shared by all save slots |
 | `ShotTour.cs` | The scripted screenshot tour and the currency icon renderer |
+| `IconRenderer.cs` | Renders the app icon from the in-game dragon model |
+| `assets/icon/` | `AppIcon.png` (macOS `.icns`, Linux and the window icon) and `AppIcon.ico` (Windows `.exe`) |
+| `scripts/package-mac.sh`, `scripts/package-linux.sh`, `scripts/package-windows.sh` | Packaging for each platform |
+| `.github/workflows/release.yml` | Builds every platform and publishes a GitHub release when a `v*` tag is pushed |
 
 ### Handy dev tools
 
 - **Screenshot tour:** `DRAGON_SHOTS=/some/dir dotnet run` plays a scripted tour of staged early-game scenes (gameplay and the pause menu) and saves a PNG of each. It also renders the four currency icons to transparent PNGs in an `icons/` subfolder. `just shots` runs the tour, converts the screenshots into the 1280px-wide JPEGs in `docs/screenshots/` and copies the icons into `docs/icons/`. That's how the images in this README were made. The tour never writes to your save slots.
+- **App icon:** `dotnet run -- --render-icon assets/icon/AppIcon.png` renders the 1024px icon from the real dragon model, plus a multi-size `AppIcon.ico` next to it. Every package uses these: the macOS `.icns`, the Windows `.exe` (embedded when built on Windows, which the release workflow does) and the window icon on Windows and Linux.
 - **Demo mode:** `dotnet run -- --demo` starts at stage 40 with most heroes and dragons unlocked. Nothing is saved, which makes it handy for checking visuals.
 
 ### Guidelines
